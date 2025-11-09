@@ -42,6 +42,8 @@ class CocoDetection(FasterCocoDetection, DetDataset):
 
     def load_item(self, idx):
         image, target = super(FasterCocoDetection, self).__getitem__(idx)
+        if image.mode != "RGB":
+            image = image.convert("RGB")
         image_id = self.ids[idx]
         target = {'image_id': image_id, 'annotations': target}
 

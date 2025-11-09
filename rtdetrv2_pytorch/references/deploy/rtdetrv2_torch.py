@@ -1,17 +1,21 @@
 """Copyright(c) 2023 lyuwenyu. All Rights Reserved.
 """
 
+import os 
+import sys 
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '../..'))
+
 import torch
 import torch.nn as nn 
 import torchvision.transforms as T
 
 import numpy as np 
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 
 from src.core import YAMLConfig
 
 
-def draw(images, labels, boxes, scores, thrh = 0.6):
+def draw(images, labels, boxes, scores, names, font, thrh = 0.6):
     for i, im in enumerate(images):
         draw = ImageDraw.Draw(im)
 
@@ -20,9 +24,14 @@ def draw(images, labels, boxes, scores, thrh = 0.6):
         box = boxes[i][scr > thrh]
         scrs = scores[i][scr > thrh]
 
+        # 텍스트 위치 변경 원하면 b[0], b[1] 수정 필요, 현재 박스 안 좌측 상단에 그림
         for j,b in enumerate(box):
-            draw.rectangle(list(b), outline='red',)
-            draw.text((b[0], b[1]), text=f"{lab[j].item()} {round(scrs[j].item(),2)}", fill='blue', )
+            if lab[j].item() == 0:
+                draw.rectangle(list(b), outline='green', width=3)
+                draw.text((b[0], b[1]), text=f"{names[lab[j].item()]} {round(scrs[j].item(),2)}", fill='green', font=font)
+            else:
+                draw.rectangle(list(b), outline='red', width=3)
+                draw.text((b[0], b[1]), text=f"{names[lab[j].item()]} {round(scrs[j].item(),2)}", fill='red', font=font)
 
         im.save(f'results_{i}.jpg')
 
@@ -69,8 +78,11 @@ def main(args, ):
 
     output = model(im_data, orig_size)
     labels, boxes, scores = output
+    
+    names = ["normal", "anomaly"]
+    font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 25)
 
-    draw([im_pil], labels, boxes, scores)
+    draw([im_pil], labels, boxes, scores, names, font)
 
 
 if __name__ == '__main__':
