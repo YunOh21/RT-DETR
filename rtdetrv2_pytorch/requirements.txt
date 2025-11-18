@@ -7,3 +7,4 @@ scipy
 pycocotools
 onnx
 onnxruntime-gpu
+opencv-python
